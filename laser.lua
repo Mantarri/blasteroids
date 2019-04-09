@@ -3,7 +3,7 @@ local laser = {
 }
 
 function laser.update(self)
-	self.x = self.x + .8
+	self.x = self.x + 350 * love.timer.getDelta()
 end
 
 function new(x, y)
