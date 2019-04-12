@@ -21,8 +21,8 @@ function love.load()
 
     lasers = {} -- Initialize an empty table to store lasers in
     laserSprite = love.graphics.newImage("/resources/sprites/lazer.png")
-    laserWidth = 24
-    laserHeight = 16
+    laserWidth = 14
+    laserHeight = 5
 
     asteroids = {}
     asteroidY = 0
