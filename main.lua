@@ -15,12 +15,12 @@ function love.load()
     player.x = 20
     player.y = WINDOW_HEIGHT / 2 - 25
     player.spd = 200 -- Set player speed
-    player.shipImage = love.graphics.newImage("/textures/ship.png")
+    player.shipImage = love.graphics.newImage("/resources/sprites/ship.png")
     player.HP = 1
     player.score = 0
 
     lasers = {} -- Initialize an empty table to store lasers in
-    laserSprite = love.graphics.newImage("/textures/lazer.png")
+    laserSprite = love.graphics.newImage("/resources/sprites/lazer.png")
     laserWidth = 24
     laserHeight = 16
 
@@ -34,7 +34,7 @@ function love.load()
     asteroidSpawnTimer = 0
     asteroidSpawnCount = 0
     MAX_ASTEROID_SPAWNS = 4
-    asteroidSprite = love.graphics.newImage("/textures/asteroid.png")
+    asteroidSprite = love.graphics.newImage("/resources/sprites/asteroid.png")
 
     -- Functions
 
