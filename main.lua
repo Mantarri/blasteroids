@@ -1,15 +1,29 @@
 local LASER = require("laser")
 local ASTEROID = require("asteroid")
-
-
+local PROGRAM = require("program")
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest", 1)
-
+    menuFont = love.graphics.newFont("/resources/Mister Pixel Regular.ttf", 34)
+    menuFont:setFilter( "nearest", "nearest")
+    gameFont = love.graphics.newFont("/resources/Mister Pixel Regular.ttf", 26)
+    gameFont:setFilter( "nearest", "nearest")
     WINDOW_HEIGHT = love.graphics.getHeight()
     WINDOW_WIDTH = love.graphics.getWidth()
-    score = 0
-    gameOver = false
+
+    programData = {}
+    programData.menuTransition = false
+    programData.menuTransitionTimer = 0
+    programData.highScores = 0
+    programData.programStatus = "menu"
+    programData.mouse = {x = 0, y = 0, isHeld = false}
+    programData.button = {
+    start = {x = WINDOW_WIDTH / 2 - 196, y = 80, w = 196, h = 64, textContent = "Start Game", textColour = "black"},
+    mainMenu = {x = WINDOW_WIDTH / 2 - 196, y = 196, w = 196, h = 64, textContent = "Main Menu", textColour = "black"},
+    waitingForRelease = false,
+    image = love.graphics.newImage("/resources/sprites/button.png")}
+
+    
 
     player = {}
     player.x = 20
@@ -18,6 +32,7 @@ function love.load()
     player.shipImage = love.graphics.newImage("/resources/sprites/ship.png")
     player.HP = 1
     player.score = 0
+    player.sessionScore = 0
 
     lasers = {} -- Initialize an empty table to store lasers in
     laserSprite = love.graphics.newImage("/resources/sprites/lazer.png")
@@ -43,131 +58,136 @@ function love.load()
             player.score = player.score + amount
         elseif mode == "decrease" and player.score > 0 then
             player.score = player.score - amount
-        else
+        elseif mode == nil or amount == nil then
             print("ERROR: missing argument(s) for updateScore function")
         end
     end
     
     function checkCollision(w1, h1, w2, h2, x1, y1, x2, y2)
-        --[[
-        w1/h1 are the dims of the "checker object", that will be checking for collisions
-          and w2/h2 are collision object's dims
-        
-        x1/y1 are the coords of the "checker object", 
-          and x2/y2 are the collision object's coords.
-        --]]
-        if x1 >= x2 and x1 <= x2 + w2 and y1 >= y2 and y1 <= y2 + h2 then
-          return "collision"
+        if x1 > x2 + w2 - 1 or
+        y1 > y2 + h2 - 1 or
+        x2 > x1 + w1 - 1 or
+        y2 > y1 + h1 - 1
+        then
+            return false
+        else
+            return true
         end
     end
 
-    -- Disable key repeat for love.keypressed function
-    -- A likely better solution is to move the key down detection back to love.update (where
-    -- key repeat is enabled) and instead implement a cooldown before another laser can be
-    -- fired. Keep in mind that the dt/dtime argument passed to love.update can be used to
-    -- decrement a cooldown timer as it represents the time since the last update call.
-    -- For example: player.cooldown = player.cooldown - dt
-    love.keyboard.setKeyRepeat(false)
+    function buttonClicked(w1, h1, x1, y1, x2, y2)
+        if x2 > x1 and
+        x2 < x1 + w1 and
+        y2 > y1 and
+        y2 < y1 + h1
+        then
+            return true
+        else
+            return false
+        end
+    end
+
+    function love.mousepressed(x2, y2, button)
+        programData.mouse.isHeld = true
+    end
+
+    function love.mousereleased(x, y, button)
+        programData.mouse.isHeld = false
+    end
+
+    function button(w, h, x, y, changeToMenu)
+        programData.mouse.x, programData.mouse.y = love.mouse.getPosition()
+        if programData.mouse.isHeld == false and programData.button.waitingForRelease == true then
+            programData.programStatus = changeToMenu
+            print("Changing to " .. changeToMenu)
+            programData.button.waitingForRelease = false
+        end
+    end
+
+    function buttonDraw(x, y, textContent, textColour)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.draw(programData.button.image, x, y)
+        if textColour == "white" then
+            love.graphics.setColor(1, 1, 1)
+        elseif textColour == "black" then
+            love.graphics.setColor(0, 0, 0)
+        elseif textColour == "red" then
+            love.graphics.setColor(1, 0, 0)
+        elseif textColour == "green" then
+            love.graphics.setColor(0, 1, 0)
+        elseif textColour == "blue" then
+            love.graphics.setColor(0, 0, 1)
+        end
+        love.graphics.print(textContent, x + 8, y + 12)
+    end
 end
 
 function love.update(dt)
-    if gameOver == false then
-        -- Player controls
-        if love.keyboard.isDown("down") and player.y <= WINDOW_HEIGHT - 30 then
-            player.y = player.y + player.spd * dt
-        elseif love.keyboard.isDown("up") and player.y >= 10 then
-            player.y = player.y - player.spd * dt
-        end
-
-
-        -- Move laser to the right via increasing laser.x value
-        for _, laser in pairs(lasers) do
-            laser:update()
-        end
-
-        -- Asteroids
-
-        if asteroidSpawn == true or activeAsteroids == 0 then
-            if activeAsteroids == 0 then
-                asteroidY = math.random(50, 70)
-                local asteroid = ASTEROID.new(WINDOW_WIDTH + asteroidWidth + 2, asteroidY)
-                table.insert(asteroids, asteroid)
-                activeAsteroids = activeAsteroids + 1
-                asteroidY = math.random(asteroidY + 60, asteroidY + 120)
-                asteroidSpawn = true
-            elseif asteroidSpawn == true and asteroidY >= 50 and asteroidY <= WINDOW_HEIGHT - 50 then
-                    local asteroid = ASTEROID.new(WINDOW_WIDTH + asteroidWidth + 2, asteroidY)
-                    table.insert(asteroids, asteroid)
-                    activeAsteroids = activeAsteroids + 1
-                    asteroidY = math.random(asteroidY + 60, asteroidY + 120)
-            else
-                asteroidSpawn = false
+    -- Game Over
+    if programData.programStatus == "gameOver" then
+        PROGRAM.readState("gameOver")
+        if programData.mouse.isHeld == true then
+            programData.mouse.x, programData.mouse.y = love.mouse.getPosition()
+            if buttonClicked(programData.button.mainMenu.w, programData.button.mainMenu.h, programData.button.mainMenu.x, programData.button.mainMenu.y, programData.mouse.x, programData.mouse.y) == true then
+                programData.button.waitingForRelease = true
             end
         end
 
-        for _, asteroid in pairs(asteroids) do
-            asteroid:update()
-        end
-        
-        for key2, asteroid in pairs(asteroids) do
-            if asteroid.x <= -42 then
-                activeAsteroids = activeAsteroids - 1
-                table.remove(asteroids, key2)
-                updateScore("decrease", 1)
-            end
-            if checkCollision(asteroidWidth, asteroidHeight, 64, 48, asteroid.x, asteroid.y, player.x, player.y) == "collision" then
-                activeAsteroids = activeAsteroids - 1
-                table.remove(asteroids, key2)
-                player.HP = player.HP - 1
-                updateScore("decrease", 2)
+
+    -- Main Menu
+    elseif programData.programStatus == "menu" then
+        PROGRAM.readState("menu")
+        if programData.mouse.isHeld == true then
+            programData.mouse.x, programData.mouse.y = love.mouse.getPosition()
+            if buttonClicked(programData.button.start.w, programData.button.start.h, programData.button.start.x, programData.button.start.y, programData.mouse.x, programData.mouse.y) == true then
+                programData.button.waitingForRelease = true
             end
         end
-        
-        for key, laser in pairs(lasers) do
-            if laser.x >= WINDOW_WIDTH then
-                table.remove(lasers, key)
-            end
-            for key2, asteroid in pairs(asteroids) do
-                if checkCollision(laserWidth, laserHeight, asteroidWidth, asteroidHeight, laser.x, laser.y, asteroid.x, asteroid.y) == "collision" then
-                    table.remove(lasers, key)
-                    activeAsteroids = activeAsteroids - 1
-                    table.remove(asteroids, key2)
-                    updateScore("increase", 1)
-                end
-            end
-        end
-        if player.HP == 0 then
-            gameOver = true
-        end
+
+
+    -- Active Game Loop
+    elseif programData.programStatus == "game" then
+        PROGRAM.readState("game")
     end
 end
 
-function love.keypressed(key, isrepeat)
-    if key == "space" then
-        -- Initialize a new laser at the player position with a horizontal offset of 10
-        local laser = LASER.new(player.x + 75, player.y + 9)
-        table.insert(lasers, laser) -- Insert new laser into lasers table
-    end
-end
 
 function love.draw()
-    if gameOver == false then
-        love.graphics.print(player.score)
+    love.graphics.setFont(menuFont)
+
+    --Game over
+    if programData.programStatus == "gameOver" then
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.print("Game over, your score was " .. player.sessionScore, 50, 50)
+        buttonDraw(programData.button.mainMenu.x, programData.button.mainMenu.y, programData.button.mainMenu.textContent, programData.button.mainMenu.textColour)
+    end
+
+    --Main Menu
+    if programData.programStatus == "menu" then
+        buttonDraw(programData.button.start.x, programData.button.start.y, programData.button.start.textContent, programData.button.start.textColour)
+        love.graphics.setColor(1, 1, 1)
+        local showScore = love.filesystem.read("highscores.sav")
+        love.graphics.print("High score is " .. showScore, WINDOW_WIDTH / 2 - 200, 32)
+    end
+
+    --Game
+    if programData.programStatus == "game" then
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.setFont(gameFont)
+        love.graphics.print(player.score, 4, 32)
 
         -- Asteroids
         for _, asteroid in pairs(asteroids) do
             love.graphics.draw(asteroidSprite, asteroid.x, asteroid.y, 0, 2)
         end
 
-        -- Player ship
-        love.graphics.draw(player.shipImage, player.x, player.y, 0, 2)
-
         -- Lasers
         for _, laser in pairs(lasers) do
             love.graphics.draw(laserSprite, laser.x, laser.y, 0, 2)
         end
-    end
-    if gameOver == true then
-        love.graphics.print("Game over, your score was " .. player.score, 50, 50, 0, 1.5)
+
+        -- Player ship
+        love.graphics.draw(player.shipImage, player.x, player.y, 0, 2)
+        love.graphics.print("Player HP: " .. player.HP, 4, 4)
     end
 end
