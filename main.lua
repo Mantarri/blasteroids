@@ -1,6 +1,7 @@
 local LASER = require("laser")
 local ASTEROID = require("asteroid")
 local PROGRAM = require("program")
+asteroidSpeed = 90
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest", 1)
@@ -22,15 +23,16 @@ function love.load()
     mainMenu = {x = WINDOW_WIDTH / 2 - 196, y = 196, w = 196, h = 64, textContent = "Main Menu", textColour = "black"},
     waitingForRelease = false,
     image = love.graphics.newImage("/resources/sprites/button.png")}
+    
 
     
 
     player = {}
     player.x = 20
     player.y = WINDOW_HEIGHT / 2 - 25
-    player.spd = 200 -- Set player speed
+    player.spd = 225 -- Set player speed
     player.shipImage = love.graphics.newImage("/resources/sprites/ship.png")
-    player.HP = 1
+    player.HP = 3
     player.score = 0
     player.sessionScore = 0
 
@@ -44,14 +46,41 @@ function love.load()
     asteroidWidth = 48
     asteroidHeight = 48
     asteroidSpawn = false
-    spawnedASteroids = 0
     activeAsteroids = 0
-    asteroidSpawnTimer = 0
-    asteroidSpawnCount = 0
     MAX_ASTEROID_SPAWNS = 4
+    asteroidWave = 0
     asteroidSprite = love.graphics.newImage("/resources/sprites/asteroid.png")
 
     -- Functions
+
+    function resetGame()
+        programData.button.mainMenu.waitingForRelease = false
+        programData.menuTransition = false
+        programData.menuTransitionTimer = 0
+
+
+        asteroids = {}
+        asteroidY = 0
+        activeAsteroids = 0
+        asteroidSpawnTimer = 0
+        asteroidSpawnCount = 0
+        asteroidSpeed = 90
+        asteroidWave = 0
+
+        lasers = {}
+
+        player.HP = 3
+        player.score = 0
+        player.sessionScore = 0
+    end
+
+    function increaseWave()
+        asteroidWave = asteroidWave + 1
+    end
+
+    function getAsteroidSpeed()
+        return asteroidSpeed
+    end
 
     function updateScore(mode, amount)
         if mode == "increase" then
@@ -123,6 +152,8 @@ function love.load()
 end
 
 function love.update(dt)
+
+
     -- Game Over
     if programData.programStatus == "gameOver" then
         PROGRAM.readState("gameOver")
@@ -174,7 +205,8 @@ function love.draw()
     if programData.programStatus == "game" then
         love.graphics.setColor(1, 1, 1)
         love.graphics.setFont(gameFont)
-        love.graphics.print(player.score, 4, 32)
+        love.graphics.print("Score: " .. player.score, 140, WINDOW_HEIGHT - 40)
+        love.graphics.print("Current Wave: " .. asteroidWave, 256, WINDOW_HEIGHT - 40)
 
         -- Asteroids
         for _, asteroid in pairs(asteroids) do
@@ -188,6 +220,6 @@ function love.draw()
 
         -- Player ship
         love.graphics.draw(player.shipImage, player.x, player.y, 0, 2)
-        love.graphics.print("Player HP: " .. player.HP, 4, 4)
+        love.graphics.print("Ship HP: " .. player.HP, 8, WINDOW_HEIGHT - 40)
     end
 end

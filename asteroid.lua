@@ -3,7 +3,7 @@ local asteroid = {
 }
 
 function asteroid.update(self)
-	self.x = self.x - 110 * love.timer.getDelta()
+	self.x = self.x - getAsteroidSpeed() * love.timer.getDelta()
 end
 
 function new(x, y)

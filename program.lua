@@ -2,6 +2,7 @@ local LASER = require("laser")
 local ASTEROID = require("asteroid")
 local program = {}
 local laserBlaster = {onCoolDown = false, coolDownTimer = .40, coolDownTime = 0}
+
 function program.readState(programState)
     if programState == "gameOver" then
         local highScore = love.filesystem.read("highscores.sav")
@@ -12,6 +13,7 @@ function program.readState(programState)
         if player.sessionScore > highScore then
             love.filesystem.write("highscores.sav", player.score)
         end
+        resetGame()
         button(programData.button.mainMenu.w, programData.button.mainMenu.h, programData.button.mainMenu.x, programData.button.mainMenu.y, "menu")
 
 
@@ -22,6 +24,10 @@ function program.readState(programState)
 
 
     elseif programState == "game" then
+        if activeAsteroids == 0 then
+            increaseWave()
+        end
+
         --Laser blaster cooldown timer
         if laserBlaster.onCoolDown == true then
             if laserBlaster.coolDownTime < laserBlaster.coolDownTimer then
@@ -52,18 +58,19 @@ function program.readState(programState)
         -- Asteroids
 
         if asteroidSpawn == true or activeAsteroids == 0 then
+            asteroidSpeed = asteroidSpeed + love.math.random(1, 3)
             if activeAsteroids == 0 then
                 asteroidY = math.random(50, 70)
                 local asteroid = ASTEROID.new(WINDOW_WIDTH + asteroidWidth + 2, asteroidY)
                 table.insert(asteroids, asteroid)
                 activeAsteroids = activeAsteroids + 1
-                asteroidY = math.random(asteroidY + 100, asteroidY + 130)
+                asteroidY = math.random(asteroidY + 90, asteroidY + 115)
                 asteroidSpawn = true
-            elseif asteroidSpawn == true and asteroidY >= 50 and asteroidY <= WINDOW_HEIGHT - 50 then
+            elseif asteroidSpawn == true and asteroidY >= 50 and asteroidY <= WINDOW_HEIGHT - 60 then
                     local asteroid = ASTEROID.new(WINDOW_WIDTH + asteroidWidth + 2, asteroidY)
                     table.insert(asteroids, asteroid)
                     activeAsteroids = activeAsteroids + 1
-                    asteroidY = math.random(asteroidY + 100, asteroidY + 130)
+                    asteroidY = math.random(asteroidY + 90, asteroidY + 115)
             else
                 asteroidSpawn = false
             end
@@ -79,7 +86,8 @@ function program.readState(programState)
                 table.remove(asteroids, key2)
                 updateScore("decrease", 1)
             end
-            if checkCollision(asteroidWidth, asteroidHeight, 62, 46, asteroid.x, asteroid.y, player.x, player.y) == true then
+            if checkCollision(asteroidWidth, asteroidHeight, 38, 48, asteroid.x, asteroid.y, player.x, player.y) == true or
+                checkCollision(asteroidWidth, asteroidHeight, 46, 24, asteroid.x, asteroid.y, player.x + 40, player.y + 16) then
                 activeAsteroids = activeAsteroids - 1
                 table.remove(asteroids, key2)
                 player.HP = player.HP - 1
