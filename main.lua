@@ -1,6 +1,8 @@
 local LASER = require("laser")
 local ASTEROID = require("asteroid")
 local PROGRAM = require("program")
+savedScore = love.filesystem.read("highscores.sav")
+savedScore = tonumber(savedScore)
 asteroidSpeed = 90
 
 function love.load()
@@ -19,7 +21,7 @@ function love.load()
     programData.programStatus = "menu"
     programData.mouse = {x = 0, y = 0, isHeld = false}
     programData.button = {
-    start = {x = WINDOW_WIDTH / 2 - 196, y = 80, w = 196, h = 64, textContent = "Start Game", textColour = "black"},
+    start = {x = WINDOW_WIDTH / 2 - 140, y = 80, w = 196, h = 64, textContent = "Start Game", textColour = "black"},
     mainMenu = {x = WINDOW_WIDTH / 2 - 196, y = 196, w = 196, h = 64, textContent = "Main Menu", textColour = "black"},
     waitingForRelease = false,
     image = love.graphics.newImage("/resources/sprites/button.png")}
@@ -91,7 +93,7 @@ function love.load()
             print("ERROR: missing argument(s) for updateScore function")
         end
     end
-    
+    love.filesystem.read("highscores.sav")
     function checkCollision(w1, h1, w2, h2, x1, y1, x2, y2)
         if x1 > x2 + w2 - 1 or
         y1 > y2 + h2 - 1 or
@@ -152,7 +154,10 @@ function love.load()
 end
 
 function love.update(dt)
-
+    -- Create save file if it doesn't exist
+    if savedScore > 0 then
+        love.filesystem.write("highscores.sav", 0)
+    end
 
     -- Game Over
     if programData.programStatus == "gameOver" then
@@ -197,8 +202,12 @@ function love.draw()
     if programData.programStatus == "menu" then
         buttonDraw(programData.button.start.x, programData.button.start.y, programData.button.start.textContent, programData.button.start.textColour)
         love.graphics.setColor(1, 1, 1)
-        local showScore = love.filesystem.read("highscores.sav")
-        love.graphics.print("High score is " .. showScore, WINDOW_WIDTH / 2 - 200, 32)
+        if savedScore > 0 then
+            local showScore = love.filesystem.read("highscores.sav")
+            love.graphics.print("High score is " .. showScore, WINDOW_WIDTH / 2 - 200, 32)
+        elseif savedScore <= 0 then
+            love.graphics.print("No recorded high score", WINDOW_WIDTH / 2 - 200, 32)
+        end
     end
 
     --Game
