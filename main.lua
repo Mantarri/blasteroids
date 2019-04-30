@@ -22,9 +22,11 @@ function love.load()
     programData.mouse = {x = 0, y = 0, isHeld = false}
     programData.button = {
     start = {x = WINDOW_WIDTH / 2 - 140, y = 80, w = 196, h = 64, textContent = "Start Game", textColour = "black"},
-    mainMenu = {x = WINDOW_WIDTH / 2 - 196, y = 196, w = 196, h = 64, textContent = "Main Menu", textColour = "black"},
+    mainMenu = {x = WINDOW_WIDTH / 2 - 140, y = 196, w = 196, h = 64, textContent = "Main Menu", textColour = "black"},
     waitingForRelease = false,
     image = love.graphics.newImage("/resources/sprites/button.png")}
+    programData.background = {image = love.graphics.newImage("/resources/sprites/background.png"), x = 0, y = 0}
+    programData.headerImage = love.graphics.newImage("/resources/sprites/header.png")
     
 
     
@@ -34,7 +36,11 @@ function love.load()
     player.y = WINDOW_HEIGHT / 2 - 25
     player.spd = 225 -- Set player speed
     player.shipImage = love.graphics.newImage("/resources/sprites/ship.png")
-    player.HP = 3
+    player.HP = 1
+    player.HPImage = love.graphics.newImage("/resources/sprites/hp.png")
+    HP3 = love.graphics.newQuad(0, 0, 8, 8, player.HPImage:getDimensions())
+    HP2 = love.graphics.newQuad(8, 0, 8, 8, player.HPImage:getDimensions())
+    HP1 = love.graphics.newQuad(16, 0, 8, 8, player.HPImage:getDimensions())
     player.score = 0
     player.sessionScore = 0
 
@@ -50,34 +56,23 @@ function love.load()
     asteroidSpawn = false
     activeAsteroids = 0
     MAX_ASTEROID_SPAWNS = 4
-    asteroidWave = 0
     asteroidSprite = love.graphics.newImage("/resources/sprites/asteroid.png")
 
     -- Functions
 
     function resetGame()
-        programData.button.mainMenu.waitingForRelease = false
-        programData.menuTransition = false
-        programData.menuTransitionTimer = 0
-
-
         asteroids = {}
         asteroidY = 0
         activeAsteroids = 0
         asteroidSpawnTimer = 0
         asteroidSpawnCount = 0
         asteroidSpeed = 90
-        asteroidWave = 0
 
         lasers = {}
 
-        player.HP = 3
+        player.HP = 1
         player.score = 0
         player.sessionScore = 0
-    end
-
-    function increaseWave()
-        asteroidWave = asteroidWave + 1
     end
 
     function getAsteroidSpeed()
@@ -154,8 +149,13 @@ function love.load()
 end
 
 function love.update(dt)
+    if programData.background.x > -800 then
+        programData.background.x = programData.background.x - .5
+    elseif programData.background.x <= 0 then
+        programData.background.x = 0
+    end
     -- Create save file if it doesn't exist
-    if savedScore > 0 then
+    if savedScore < 0 then
         love.filesystem.write("highscores.sav", 0)
     end
 
@@ -189,12 +189,15 @@ end
 
 
 function love.draw()
+    love.graphics.draw(programData.background.image, programData.background.x, 0)
+    love.graphics.setBackgroundColor(.10588235294, .12156862745, .1294117647)
     love.graphics.setFont(menuFont)
 
     --Game over
     if programData.programStatus == "gameOver" then
         love.graphics.setColor(1, 1, 1)
-        love.graphics.print("Game over, your score was " .. player.sessionScore, 50, 50)
+        love.graphics.print("Game over", WINDOW_WIDTH / 2 - 120, 80)
+        love.graphics.print("Score: " .. player.sessionScore, WINDOW_WIDTH / 2 - 120, 120)
         buttonDraw(programData.button.mainMenu.x, programData.button.mainMenu.y, programData.button.mainMenu.textContent, programData.button.mainMenu.textColour)
     end
 
@@ -204,7 +207,7 @@ function love.draw()
         love.graphics.setColor(1, 1, 1)
         if savedScore > 0 then
             local showScore = love.filesystem.read("highscores.sav")
-            love.graphics.print("High score is " .. showScore, WINDOW_WIDTH / 2 - 200, 32)
+            love.graphics.print("High score is " .. showScore, WINDOW_WIDTH / 2 - 150, 32)
         elseif savedScore <= 0 then
             love.graphics.print("No recorded high score", WINDOW_WIDTH / 2 - 200, 32)
         end
@@ -212,10 +215,10 @@ function love.draw()
 
     --Game
     if programData.programStatus == "game" then
+        love.graphics.draw(programData.headerImage, 0, 0)
         love.graphics.setColor(1, 1, 1)
         love.graphics.setFont(gameFont)
-        love.graphics.print("Score: " .. player.score, 140, WINDOW_HEIGHT - 40)
-        love.graphics.print("Current Wave: " .. asteroidWave, 256, WINDOW_HEIGHT - 40)
+        love.graphics.print("Score: " .. player.score, 60, 10)
 
         -- Asteroids
         for _, asteroid in pairs(asteroids) do
@@ -229,6 +232,12 @@ function love.draw()
 
         -- Player ship
         love.graphics.draw(player.shipImage, player.x, player.y, 0, 2)
-        love.graphics.print("Ship HP: " .. player.HP, 8, WINDOW_HEIGHT - 40)
+        if player.HP == 3 then
+            love.graphics.draw(player.HPImage, HP3, 8, 4, 0, 4)
+        elseif player.HP == 2 then
+            love.graphics.draw(player.HPImage, HP2, 8, 4, 0, 4)
+        elseif player.HP == 1 then
+            love.graphics.draw(player.HPImage, HP1, 8, 4, 0, 4)
+        end
     end
 end

@@ -13,20 +13,17 @@ function program.readState(programState)
         if player.sessionScore > highScore then
             love.filesystem.write("highscores.sav", player.score)
         end
-        resetGame()
         button(programData.button.mainMenu.w, programData.button.mainMenu.h, programData.button.mainMenu.x, programData.button.mainMenu.y, "menu")
 
 
     elseif programState == "menu" then
+        resetGame()
         button(programData.button.start.w, programData.button.start.h, programData.button.start.x, programData.button.start.y, "game")
         programData.highScores = love.filesystem.read("highscores.sav")
         programData.highScores = tonumber(programData.highScores)
 
 
     elseif programState == "game" then
-        if activeAsteroids == 0 then
-            increaseWave()
-        end
 
         --Laser blaster cooldown timer
         if laserBlaster.onCoolDown == true then
