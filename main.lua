@@ -36,7 +36,7 @@ function love.load()
     player.y = WINDOW_HEIGHT / 2 - 25
     player.spd = 225 -- Set player speed
     player.shipImage = love.graphics.newImage("/resources/sprites/ship.png")
-    player.HP = 1
+    player.HP = 3
     player.HPImage = love.graphics.newImage("/resources/sprites/hp.png")
     HP3 = love.graphics.newQuad(0, 0, 8, 8, player.HPImage:getDimensions())
     HP2 = love.graphics.newQuad(8, 0, 8, 8, player.HPImage:getDimensions())
@@ -70,7 +70,7 @@ function love.load()
 
         lasers = {}
 
-        player.HP = 1
+        player.HP = 3
         player.score = 0
         player.sessionScore = 0
     end
