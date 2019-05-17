@@ -1,7 +1,7 @@
 local LASER = require("laser")
 local ASTEROID = require("asteroid")
 local program = {}
-local laserBlaster = {onCoolDown = false, coolDownTimer = .40, coolDownTime = 0}
+local laserBlaster = {onCoolDown = false, coolDownTimer = .45, coolDownTime = 0}
 
 function program.readState(programState)
     if programState == "gameOver" then
