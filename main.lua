@@ -53,9 +53,7 @@ function love.load()
     asteroidY = 0
     asteroidWidth = 48
     asteroidHeight = 48
-    asteroidSpawn = false
     activeAsteroids = 0
-    MAX_ASTEROID_SPAWNS = 4
     asteroidSprite = love.graphics.newImage("/resources/sprites/asteroid.png")
 
     -- Functions
@@ -64,8 +62,6 @@ function love.load()
         asteroids = {}
         asteroidY = 0
         activeAsteroids = 0
-        asteroidSpawnTimer = 0
-        asteroidSpawnCount = 0
         asteroidSpeed = 90
 
         lasers = {}
@@ -125,7 +121,6 @@ function love.load()
         programData.mouse.x, programData.mouse.y = love.mouse.getPosition()
         if programData.mouse.isHeld == false and programData.button.waitingForRelease == true then
             programData.programStatus = changeToMenu
-            print("Changing to " .. changeToMenu)
             programData.button.waitingForRelease = false
         end
     end
