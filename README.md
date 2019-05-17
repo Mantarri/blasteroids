@@ -14,5 +14,5 @@ Asteroids are spawned in waves, after you beat the current wave (no asteroids ar
 
 # Highscore is saved at the following locations:
 On Linux: '/home/$USERNAME$/.local/share/Blasteroids/highscores.sav'
-on Windows: 'C:\Users\$USERNAME$\AppData\Roaming\LOVE'
+on Windows: 'C:\Users\$USERNAME$\AppData\Roaming\LOVE\Blasteroids'
 
